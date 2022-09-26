@@ -1,0 +1,81 @@
+---
+title: "Flights Homework Notebook"
+author: "Stephen Miner"
+date: "2022-09-13"
+output: html_notebook
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(ggplot2)
+```
+
+```{r}
+thisfile=here("data_raw","DL_SelectFields.zip")
+df2019<-read_csv(thisfile) %>% clean_names()
+```
+
+```{r}
+df9 = df2019 %>% filter(passengers>0,origin=="LGA")
+```
+
+```{r}
+df9 %>% ggplot(aes(month)) + geom_bar()
+```
+```{r}
+df9 %>% ggplot(aes(month)) + geom_bar(aes(weight=departures_performed))
+```
+
+```{r}
+df9 %>% ggplot(aes(month)) + geom_bar(aes(weight=passengers))
+```
+
+```{r}
+df9 %>% ggplot(aes(month,fill=carrier_name))+geom_bar(aes(weight=departures_performed))
+```
+```{r}
+df10 = df2019 %>% filter(passengers>0,origin=="LGA"|dest=="LGA")
+```
+
+```{r}
+df10 %>% ggplot(aes(month)) + geom_bar(aes(weight=passengers))
+```
+
+```{r}
+df11 <- df10 %>% select(month,passengers,seats,carrier_name,dest,origin)
+
+df13=df11 %>% mutate(percent_loading = passengers/seats * 100)
+```
+
+```{r}
+ggplot(data=df13)+geom_histogram(mapping=aes(x=percent_loading),binwidth = 5)
+
+```
+
+```{r}
+ggplot(data=df13)+geom_histogram(mapping=aes(x=percent_loading),binwidth = 5)+facet_wrap(~carrier_name)
+```
+
+```{r}
+library(dplyr)
+df14 <- df13 %>% group_by(carrier_name) %>% filter(n()>=200)
+```
+
+```{r}
+ggplot(data=df14)+geom_histogram(mapping=aes(x=percent_loading),binwidth = 5)+facet_wrap(~carrier_name)
+```
+
+```{r}
+df15 <- df2019 %>% 
+  filter(passengers>0, origin=="LGA" | dest=="LGA") %>% 
+  group_by(month, carrier_name) %>% 
+  summarise(total_pass = sum(passengers),num_flights=sum(departures_performed)) %>% 
+  mutate(average_pass_per_flight = total_pass/num_flights)
+```
+
+```{r}
+df15 %>% ggplot(aes(month,average_pass_per_flight, color=carrier_name)) + geom_line() #+ facet_wrap(~carrier_name)
+```
+
