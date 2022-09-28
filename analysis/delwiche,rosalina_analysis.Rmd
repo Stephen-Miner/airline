@@ -1,28 +1,37 @@
 ---
-title: "delwiche,rosalina_analysis"
+title: "Rosalina Delwiche's Analysis"
+author: Rosalina Delwiche
+date: September 28, 2022
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+## Loading Packages
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+library(ggplot2)
 ```
 
-## R Markdown
+## Loading Data and filtering out (Origin = LGA ) and (Carrier = Delta)
+### NOTE: Commenting out lines for 2019 and 2021, need to add data
+```{r}
+df2017<-read_csv(here("data_raw","DL_SelectFields_2017.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
+df2018<-read_csv(here("data_raw","airline_data_2018.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
+df2020<-read_csv(here("data_raw","DL_SelectFields_2020.zip")) %>% clean_names()  %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
+df2022<-read_csv(here("data_raw","DL_SelectFields2022.zip")) %>% clean_names()  %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
+df2019<-read_csv(here("data_raw","DL_SelectFields_2019.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
+df2021<-read_csv(here("data_raw","airline_data_2021_updated.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+## Binding the data for all the years
+```{r}
+df_all = rbind(df2017,df2018, df2019,df2020,df2021, df2022)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+## Making histograms for number of passengers per month coming from LGA for each year (2017, 2018, 2019, 2020, 2021, 2022)
+```{r}
+df_all %>% ggplot(aes(month)) + geom_bar(aes(weight=passengers)) + ggtitle("Passenger Count per Month") + facet_wrap(~year)
+```
