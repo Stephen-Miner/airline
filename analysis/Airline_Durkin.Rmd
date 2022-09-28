@@ -14,29 +14,42 @@ library(nycflights13)
 library(tidyverse)
 library(here)
 library(janitor)
+library(dplyr)
 ```
 
 ## Load flight data
 
 ```{r}
 thisfile=here("data_raw","DL_SelectFields_2017.zip")
-df2017=read_csv(thisfile) %>% clean_names()
+df2017=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
 
 thisfile=here("data_raw","airline_data_2018.zip")
-df2018=read_csv(thisfile) %>% clean_names()
+df2018=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
 
 thisfile=here("data_raw","DL_SelectFields_2020.zip")
-df2020=read_csv(thisfile) %>% clean_names()
+df2020=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
 
-thisfile=here("data_raw","airline_data_2021.zip")
-df2021=read_csv(thisfile) %>% clean_names()
+#thisfile=here("data_raw","airline_data_2021.zip")
+#df2021=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
 
 thisfile=here("data_raw","DL_SelectFields2022.zip")
-df2022=read_csv(thisfile) %>% clean_names()
+df2022=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
 
 
 ```
 
+```{r}
+
+delta_data = df2017 %>% full_join(df2018) %>% full_join(df2020) %>% full_join(df2022)
+
+
+```
+
+
+```{r}
+delta_data %>% ggplot() + geom_point(aes(x = month, y = passengers, color = year))
+
+```
 
 
 
