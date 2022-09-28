@@ -21,34 +21,38 @@ library(dplyr)
 
 ```{r}
 thisfile=here("data_raw","DL_SelectFields_2017.zip")
-df2017=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
+df2017=read_csv(thisfile) %>% clean_names()
+#%>% filter(airline_id == "19790")
 
 thisfile=here("data_raw","airline_data_2018.zip")
-df2018=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
+df2018=read_csv(thisfile) %>% clean_names()
+
+thisfile=here("data_raw","DL_SelectFields_2019.zip")
+df2019=read_csv(thisfile) %>% clean_names()
 
 thisfile=here("data_raw","DL_SelectFields_2020.zip")
-df2020=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
+df2020=read_csv(thisfile) %>% clean_names()
 
-#thisfile=here("data_raw","airline_data_2021.zip")
-#df2021=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
+thisfile=here("data_raw","airline_data_2021_updated.zip")
+df2021=read_csv(thisfile) %>% clean_names()
 
 thisfile=here("data_raw","DL_SelectFields2022.zip")
-df2022=read_csv(thisfile) %>% clean_names() %>% filter(airline_id == "19790")
+df2022=read_csv(thisfile) %>% clean_names()
 
 
 ```
 
 ```{r}
 
-delta_data = df2017 %>% full_join(df2018) %>% full_join(df2020) %>% full_join(df2022)
-
+#delta_data = df2017 %>% full_join(df2018) %>% full_join(df2019) %>% full_join(df2020) %>% full_join(df2021) %>% full_join(df2022)
+delta_data = df2017 %>% bind_rows(df2018) %>% bind_rows(df2019) %>% bind_rows(df2020) %>% bind_rows(df2021) %>% bind_rows(df2022) %>% filter(airline_id == "19790")
 
 ```
 
 
 ```{r}
 
-#delta_data %>% mutate(percent_capacity = (passengers / seats) * 100)
+delta_data %>% mutate(percent_capacity = (passengers / seats) * 100)
 delta_data %>% ggplot(aes(month)) + geom_bar(aes(weight = seats)) + facet_wrap(~year)
 
 ```
