@@ -47,7 +47,9 @@ delta_data = df2017 %>% full_join(df2018) %>% full_join(df2020) %>% full_join(df
 
 
 ```{r}
-delta_data %>% ggplot() + geom_point(aes(x = month, y = passengers, color = year))
+
+#delta_data %>% mutate(percent_capacity = (passengers / seats) * 100)
+delta_data %>% ggplot(aes(month)) + geom_bar(aes(weight = seats)) + facet_wrap(~year)
 
 ```
 
