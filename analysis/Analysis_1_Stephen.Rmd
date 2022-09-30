@@ -13,31 +13,29 @@ library(gridExtra)
 ```
 
 ```{r}
-file2022 = here("data_raw", "DL_SelectFields2022.zip")
-file2020 = here("data_raw", "DL_SelectFields_2020.zip")
-file2018 = here("data_raw", "airline_data_2018.zip")
-file2017 = here("data_raw", "DL_SelectFields_2017.zip")
-df2022_1 <- read_csv(file2022) %>% clean_names()
-df2020_1 <- read_csv(file2020) %>% clean_names()
-df2018_1 <- read_csv(file2018) %>% clean_names()
-df2017_1 <- read_csv(file2018) %>% clean_names()
+df2017<-read_csv(here("data_raw","DL_SelectFields_2017.zip")) %>% clean_names() %>% filter(passengers>0) 
+df2018<-read_csv(here("data_raw","airline_data_2018.zip")) %>% clean_names() %>% filter(passengers>0) 
+df2020<-read_csv(here("data_raw","DL_SelectFields_2020.zip")) %>% clean_names()  %>% filter(passengers>0) 
+df2022<-read_csv(here("data_raw","DL_SelectFields2022.zip")) %>% clean_names()  %>% filter(passengers>0) 
+
+df2019<-read_csv(here("data_raw","DL_SelectFields_2019.zip")) %>% clean_names() %>% filter(passengers>0) 
+df2021<-read_csv(here("data_raw","airline_data_2021_updated.zip")) %>% clean_names() %>% filter(passengers>0) 
 ```
 
 ```{r}
-df2017_2 <- df2017_1 %>% filter(dest=="LGA" | origin=="LGA", passengers>0, carrier=="DL") %>% group_by(month)
-df2018_2 <- df2018_1 %>% filter(dest=="LGA" | origin=="LGA", passengers>0, carrier=="DL") %>% group_by(month)
-df2020_2 <- df2020_1 %>% filter(dest=="LGA" | origin=="LGA", passengers>0, carrier=="DL") %>% group_by(month)
-df2022_2 <- df2022_1 %>% filter(dest=="LGA" | origin=="LGA", passengers>0, carrier=="DL") %>% group_by(month)
+df_all = rbind(df2017,df2018, df2019,df2020,df2021, df2022)
+df_all <- mutate(df_all, absolute_month = (year-2017) * 12 +  month)
+df_all <- df_all %>% filter(carrier_name == "Delta Air Lines Inc.")
+df_all <- mutate(df_all, loading_proportion = passengers/seats)
+df_all <- df_all %>% group_by(absolute_month)
 ```
 
 ```{r}
-plot2017 <- ggplot(df2017_2, aes(month)) + geom_bar(aes(weight=passengers))
-plot2018 <- ggplot(df2018_2, aes(month)) + geom_bar(aes(weight=passengers))
-plot2020 <- ggplot(df2020_2, aes(month)) + geom_bar(aes(weight=passengers))
-plot2022 <- ggplot(df2022_2, aes(month)) + geom_bar(aes(weight=passengers))
+ggplot(df_all) + stat_summary(mapping = aes(x=absolute_month, y=loading_proportion), fun = "mean", geom = "bar", na.rm = TRUE, inherit.aes = FALSE)
+
 ```
 
 ```{r}
-grid.arrange(plot2017, plot2018, plot2020, plot2022, nrow = 2)
+
 ```
 
