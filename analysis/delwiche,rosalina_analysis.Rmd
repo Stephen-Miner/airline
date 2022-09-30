@@ -1,37 +1,70 @@
 ---
 title: "Rosalina Delwiche's Analysis"
 author: Rosalina Delwiche
-date: September 28, 2022
+date: September 30, 2022
 output: html_document
 ---
 
-## Loading Packages
-```{r}
+
+```{r message=TRUE, warning=FALSE, include=FALSE, paged.print=TRUE}
+# Loading Packages
 library(here)
 library(tidyverse)
 library(janitor)
 library(ggplot2)
 ```
 
-## Loading Data and filtering out (Origin = LGA ) and (Carrier = Delta)
-### NOTE: Commenting out lines for 2019 and 2021, need to add data
-```{r}
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# Loading Data and filtering out (Origin = LGA ) and (Carrier = Delta)
 df2017<-read_csv(here("data_raw","DL_SelectFields_2017.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
-df2018<-read_csv(here("data_raw","airline_data_2018.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
+df2018<-read_csv(here("data_raw","airline_data_2018.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA",  unique_carrier_name == "Delta Air Lines Inc.") 
 df2020<-read_csv(here("data_raw","DL_SelectFields_2020.zip")) %>% clean_names()  %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
 df2022<-read_csv(here("data_raw","DL_SelectFields2022.zip")) %>% clean_names()  %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
-
 df2019<-read_csv(here("data_raw","DL_SelectFields_2019.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
 df2021<-read_csv(here("data_raw","airline_data_2021_updated.zip")) %>% clean_names() %>% filter(passengers>0,origin=="LGA", unique_carrier_name == "Delta Air Lines Inc.") 
 ```
 
 
-## Binding the data for all the years
-```{r}
-df_all = rbind(df2017,df2018, df2019,df2020,df2021, df2022)
+```{r message=FALSE, warning=FALSE, include=FALSE, paged.print=FALSE}
+# Binding the data for all the years and mutating
+
+df_all = bind_rows(df2017,df2018, df2019,df2020,df2021, df2022)
+
+# creating new dataset which has the year and month combined and the month since 01/2018
+df_all_new = df_all %>% mutate(month = ifelse( (nchar(month) == 1),paste0("0", month), month))
+df_all_new = df_all_new %>% mutate(year_month = paste(year,month,sep="/"))
+
 ```
 
-## Making histograms for number of passengers per month coming from LGA for each year (2017, 2018, 2019, 2020, 2021, 2022)
-```{r}
+## Making bar plot for number of passengers per month coming from LGA for each year (2017, 2018, 2019, 2020, 2021, 2022)
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+# creating a faceted bar plot that has the number of passengers per month for each 
 df_all %>% ggplot(aes(month)) + geom_bar(aes(weight=passengers)) + ggtitle("Passenger Count per Month") + facet_wrap(~year)
 ```
+
+## Making Bar Plot and Point Graph with Trendline to visualize 
+```{r echo=TRUE, message=FALSE, warning=FALSE, paged.print=FALSE}
+
+# df_count_summary contains 66 observations - one per month with the total number of passengers
+df_count_summary = df_all_new %>% group_by(year_month) %>% summarize(count = sum(passengers)) %>%  ungroup() %>% mutate(month_num=c(1:66))
+
+
+# Visual 1: Creating a scatter plot with count of passengers per MM/YYYY with trend line 
+df_count_summary %>% ggplot(aes(month_num, count)) + geom_point()  + geom_smooth(method = "auto") +ggtitle("Passenger Count per Month for Delta Airlines") +  xlab("Month Since Janurary 2017") + ylab("Passenger Count")
+
+
+# Visual 2: Creating a bar plot with count of passengers per MM/YYYY
+df_all_new %>% ggplot(aes(year_month)) + geom_bar(aes(weight=passengers)) +  ggtitle("Passenger Count per Month for Delta Airlines") + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) + xlab("(Date MM/YYYY)")  + ylab("Passenger Count")
+
+
+# df_all_new_3 contains 66 observations - one per month with the total load as defined by the number of passengers divided by seats
+df_all_new_3 = df_all_new %>% group_by(year_month) %>%  summarise(passenger_total = sum(passengers), seat_total = sum(seats)) %>% mutate(load = (passenger_total/seat_total)*100 ) %>% mutate(month_num=c(1:66))
+
+# Visual 3: Creating a scatter plot with count of passengers per MM/YYYY with trend line 
+df_all_new_3 %>% ggplot(aes(month_num, load)) + geom_point()  + geom_smooth(method = "auto") +ggtitle("Typical Passenger Load Percentage for Delta Airlines") +  xlab("Month Since Janurary 2017") + ylab("Passenger Load (Passengers:Seats)")
+
+
+```
+
+## Analysis 
+I have chosen to make a variety of visual representations. The bar plot provides insight to the quanitity of passengers, but it is harder to tell the trend. Thus, I made scatterplot with a trendline for the number of passengers per month. This clearly displays the upwards trend in passengers. Further, the scatterplot with the trend of the percentage of passengers to seats provides insight that a higher capacity nowadays is being reached. It is already known that flights are scheduled months in advanced so the number of seats is known beforehand. It is the number of passengers that remains unknown prior to the flight. Using a trend line it may be possible to multiply the expected value from the graph of (passengers/seats) by the number of known seats to get the number of passengers. With all representations it is clear that the number of passengers with increase from the last couple of months. The degree of increase is the question.
